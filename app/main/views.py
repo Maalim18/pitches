@@ -56,9 +56,12 @@ def index():
 
     message= "Welcome to Pitch Application!!"
     title= 'Pitch-app'
+    advertising = Pitches.query.filter_by(category = 'Advertising').all()
+    interview= Pitches.query.filter_by(category = 'Interview').all()
+    production=Pitches.query.filter_by(category = 'Production').all()
 
 
-    return render_template('index.html', message=message,title=title)
+    return render_template('index.html', message=message,title=title,advertising=advertising,interview=interview,production=production)
 
 
 
@@ -94,3 +97,18 @@ def category(cate):
     # print(category)
     title = f'{cate}'
     return render_template('categories.html',title = title, category = category)
+
+@main.route('/comment/<int:pitch_id>', methods = ['POST','GET'])
+@login_required
+def comment(pitch_id):
+    form = CommentForm()
+    pitch = Pitch.query.get(pitch_id)
+    all_comments = Comment.query.filter_by(pitch_id = pitch_id).all()
+    if form.validate_on_submit():
+        comment = form.comment.data
+        pitch_id = pitch_id
+        user_id = current_user._get_current_object().id
+        new_comment = Comment(comment = comment,user_id = user_id,pitch_id = pitch_id)
+        new_comment.save_c()
+        return redirect(url_for('.comment', pitch_id = pitch_id))
+    return render_template('comment.html', form =form, pitch = pitch,all_comments=all_comments)
